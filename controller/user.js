@@ -45,14 +45,15 @@ exports.signup =  (req, res, next) =>{
     })
 }
 
-exports.login = (req,res,next) =>{
+exports.login = (req , res,next) =>{
+    console.log(req);
     User.find({email: req.body.email})
         .exec()
         .then(user => {
             console.log("user",user);
             if (user.length < 1) {
                 return res.status(404).json({
-                    message: 'Auth failed1'
+                    message: 'cannot user '
                 })
             }
             bcrypt.compare(req.body.password, user[0].password, (err, result) => {
@@ -70,10 +71,8 @@ exports.login = (req,res,next) =>{
                         }
                     )
                     const expireTokenDuration = 60 * 60 * 24  * 30;
-                    console.log("expireTokenDuration",expireTokenDuration);
                     const now =  new Date();
                     const expiredAt = new Date(now.getTime() + (expireTokenDuration * 1000));
-                    console.log("expiredAt",expiredAt);
                     return res.status(200).json({
                         message: 'Auth success',
                         userId: user[0]._id,

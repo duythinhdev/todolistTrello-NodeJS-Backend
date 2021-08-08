@@ -1,16 +1,19 @@
 const express = require("express")
 const bodyParser = require("body-parser");
 const mongoose = require('mongoose');
-const morgan = require('morgan');
 const userRoutes = require('./api/user')
 require('dotenv').config();
-const cors = require('cors');
+const mainRoutes = require('./api/main');
+const app = express();
+const morgan = require('morgan');
 
-mongoose.connect('mongodb+srv://duythinh:716284@cluster0.dovxc.mongodb.net/todolist?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true})
+mongoose.set('useNewUrlParser', true);
+mongoose.set('useFindAndModify', false);
+mongoose.set('useCreateIndex', true);
+
+mongoose.connect('mongodb+srv://duythinh:716284@cluster0.dovxc.mongodb.net/todolist?retryWrites=true&w=majority')
     .then(() => console.log("MongoDb connected"))
     .catch(err => console.log(err));
-
-const app = express();
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
     res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
@@ -20,12 +23,12 @@ app.use((req, res, next) => {
     );
     next();
 });
-
+app.use(morgan('dev'))
 app.use(bodyParser.json());
-
 app.use(bodyParser.urlencoded({extended: true}));
 // app.use(bodyParser.json())
-app.use("/users",userRoutes);
+app.use("/v1/user",userRoutes);
+app.use("/v1/main",mainRoutes);
 mongoose.Promise = global.Promise;
 
 // app.use((req, res, next) => {
