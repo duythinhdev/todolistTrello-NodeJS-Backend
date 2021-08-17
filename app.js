@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const userRoutes = require('./api/user')
 require('dotenv').config();
 const mainRoutes = require('./api/main');
+const mainDetailRoutes = require('./api/maindetail');
 const app = express();
 const morgan = require('morgan');
 
@@ -26,9 +27,9 @@ app.use((req, res, next) => {
 app.use(morgan('dev'))
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
-// app.use(bodyParser.json())
 app.use("/v1/user",userRoutes);
 app.use("/v1/main",mainRoutes);
+app.use("/v1/mainDetail",mainDetailRoutes)
 mongoose.Promise = global.Promise;
 
 // app.use((req, res, next) => {
