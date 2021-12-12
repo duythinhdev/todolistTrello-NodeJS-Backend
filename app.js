@@ -1,49 +1,46 @@
 const express = require("express")
-const bodyParser = require("body-parser");
 const mongoose = require('mongoose');
-const userRoutes = require('./api/user')
 require('dotenv').config();
-const mainRoutes = require('./api/main');
-const mainDetailRoutes = require('./api/maindetail');
 const app = express();
-const morgan = require('morgan');
+const Routes = require('./Routes');
 
-mongoose.set('useNewUrlParser', true);
-mongoose.set('useFindAndModify', false);
-mongoose.set('useCreateIndex', true);
-
-mongoose.connect('mongodb+srv://duythinh:716284@cluster0.dovxc.mongodb.net/todolist?retryWrites=true&w=majority')
-    .then(() => console.log("MongoDb connected"))
-    .catch(err => console.log(err));
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
-    res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
-    res.header(
-        "Access-Control-Allow-Headers",
-        "Origin, X-Requested-With, Content-Type, Accept"
-    );
-    next();
-});
-app.use(morgan('dev'))
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
-app.use("/v1/user",userRoutes);
-app.use("/v1/main",mainRoutes);
-app.use("/v1/mainDetail",mainDetailRoutes)
+class kernel {
+    app = {};
+    apiVersion = '';
+    mongoose = {};
+    constructor() {
+        this.app = app
+        this.apiVersion = "/v1";
+        this.mongoose = mongoose;
+        this.allowHeader();
+        this.runDB();
+        this.runApiApp();
+    }
+    allowHeader() {
+        this.app = app;
+        this.app.use((req, res, next) => {
+            res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
+            res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
+            res.header(
+                "Access-Control-Allow-Headers",
+                "Origin, X-Requested-With, Content-Type, Accept"
+            );
+            next();
+        });
+    }
+    runApiApp() {
+        const router = new Routes();
+        router.runApi(this.app, this.apiVersion);
+    }
+    runDB() {
+        this.mongoose.set('useNewUrlParser', true);
+        this.mongoose.set('useFindAndModify', false);
+        this.mongoose.set('useCreateIndex', true);
+        this.mongoose.connect(process.env.MONGO_URI)
+            .then(() => console.log("MongoDb connected"))
+            .catch(err => console.log(err));
+    }
+}
 mongoose.Promise = global.Promise;
-
-// app.use((req, res, next) => {
-//     const error = new Error('Not found');
-//     error.status(404);
-//     next(error);
-// })
-// app.use((error, req, res, next) => {
-//     res.status(error.status || 500);
-//     res.json({
-//         error: {
-//             message: error.message
-//         }
-//     })
-// })
-
-module.exports = app;
+const kernels = new kernel();
+module.exports = kernels.app;

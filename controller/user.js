@@ -3,11 +3,11 @@ const User = require("../models/user");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-exports.signup =  (req, res, next) =>{
-    console.log("req.bodyreq.body",req.body);
-    User.find({email: req.body.email}).exec().then(user => {
+exports.signup = (req, res, next) => {
+    console.log("req.bodyreq.body", req.body);
+    User.find({ email: req.body.email }).exec().then(user => {
         if (user.length >= 1) {
-            console.log("user",user);
+            console.log("user", user);
             return res.status(409).json({
                 message: 'Mail exists'
             })
@@ -22,6 +22,10 @@ exports.signup =  (req, res, next) =>{
                         _id: new mongoose.Types.ObjectId(),
                         name: req.body.name,
                         email: req.body.email,
+                        full_name: req.body.full_name,
+                        permission: req.body.permission,
+                        is_active: req.body.is_active,
+                        address: req.body.address,
                         password: hash
                     });
                     user.save().then(result => {
@@ -29,15 +33,13 @@ exports.signup =  (req, res, next) =>{
                                 message: "User created",
                                 result: result
                             })
-                        }
-                    )
+                        })
                         .catch(err => {
-                                console.log(err)
-                                res.status(500).json({
-                                    error: err
-                                })
-                            }
-                        );
+                            console.log(err)
+                            res.status(500).json({
+                                error: err
+                            })
+                        });
                 }
             })
         }
@@ -45,12 +47,11 @@ exports.signup =  (req, res, next) =>{
     })
 }
 
-exports.login = (req , res,next) =>{
+exports.login = (req, res, next) => {
     console.log(req);
-    User.find({email: req.body.email})
+    User.find({ email: req.body.email })
         .exec()
         .then(user => {
-            console.log("user",user);
             if (user.length < 1) {
                 return res.status(404).json({
                     message: 'cannot user '
@@ -59,25 +60,22 @@ exports.login = (req , res,next) =>{
             bcrypt.compare(req.body.password, user[0].password, (err, result) => {
                 if (err) {
                     return res.status(401).json({
-                        message: 'Auth failed2'
+                        message: 'Auth failed'
                     })
                 }
                 if (result) {
+                    // const expireTokenDuration = 60 * 60 * 24 * 30;
+                    // const now = new Date();
+                    // const expiredAt = new Date(now.getTime() + (expireTokenDuration * 10));
                     const token = jwt.sign({
-                            email: user[0].email,
-                            userId: user[0]._id
-                        }, "secret", {
-                            expiresIn: "7d"
-                        }
-                    )
-                    const expireTokenDuration = 60 * 60 * 24  * 30;
-                    const now =  new Date();
-                    const expiredAt = new Date(now.getTime() + (expireTokenDuration * 1000));
+                        email: user[0].email,
+                        userId: user[0]._id,
+                    }, "secret", {
+                        expiresIn: "7d"
+                    })
                     return res.status(200).json({
                         message: 'Auth success',
-                        userId: user[0]._id,
                         token: token,
-                        expiredAt: expiredAt
                     })
                 }
                 res.status(401).json({
@@ -86,10 +84,9 @@ exports.login = (req , res,next) =>{
             })
         })
         .catch(err => {
-                console.log(err)
-                res.status(500).json({
-                    error: err
-                })
-            }
-        );
+            console.log(err)
+            res.status(500).json({
+                error: err
+            })
+        });
 }
